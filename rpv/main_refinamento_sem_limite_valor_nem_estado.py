@@ -1,28 +1,15 @@
-#importando tabelas em pdf usando o pytabula
+# consulta os dados do site http://rpvprecatorio.trf5.jus.br/
 
-# import tabula
-# import requests
 import aiohttp
 import asyncio
 import locale
-
-
 
 from aiohttp import ClientSession
 from pip._vendor.urllib3.exceptions import HTTPError
 
 TRF5_URL="http://www4.trf5.jus.br/cp/cp.do"
 
-#Procedimento 1 - Converter arquivo PDF em CSV
-# tabula.convert_into("C:\\Users\\gdasi\\OneDrive\\Desktop\\necessidade-advogado-arthur\\precatorios\\2018_12106.pdf", "precatorios_2018.csv", output_format="csv", pages='2-215')
-
-# Procedimento 2 - Abre no PDF e faz as limpezas necessárias
-
-
-# Procedimento 3 - Obtem as linhas do arquivo e joga na variavel Lines
-
-
-filePrecatorio = open("../dados/2018/rpv/resultados/precatorios_cancelados_para_refinar.txt", 'r')
+filePrecatorio = open("../dados/2018/rpv/resultados/rpv_cancelados.txt", 'r')
 Lines = filePrecatorio.readlines()
 
 # Cria um array para popular os dados do arquivo
@@ -43,9 +30,9 @@ def formatarValor(str_valor):
 
 def escrever_file_precatorio_cancelado_refinado(valorDepositado, cpf, nome, estado, local, rpv):
     f = open(
-        '../dados/2018/rpv/resultados/todos_estados_quaisquer_valores/precatorios_cancelados_todos_estados_qualquer_valor_somente_rpv.txt', 'a')
+        '../resultados/2018/rpv/rpv_informacoes.txt', 'a')
     g = open(
-        '../dados/2018/rpv/resultados/todos_estados_quaisquer_valores/precatorios_cancelados_todos_estados_qualquer_valor.csv', 'a')
+        '../resultados/2018/rpv/rpv_informacoes.csv', 'a')
 
     g.write(str(nome) + '|' + str(cpf) + '|' + str(estado) + '|' + str(local) + '|' + str(valorDepositado) + '|' + str(rpv) + '\n')
     g.close()
@@ -54,13 +41,13 @@ def escrever_file_precatorio_cancelado_refinado(valorDepositado, cpf, nome, esta
     f.close()
 
 def escrever_file_falha_request(rpv):
-    f = open('../dados/2018/rpv/resultados/todos_estados_quaisquer_valores/arquivo_falha_request.txt', 'a')
+    f = open('../resultados/2018/rpv/arquivo_falha_request.txt', 'a')
     f.write(rpv + '\n')
     f.close()
 
 def ler_file_total_precatorio():
     LISTA_RPV_LIMPOS = []
-    filePrecatorio = open("../dados/2018/rpv/resultados/precatorios_cancelados_para_refinar.txt", 'r')
+    filePrecatorio = open("../dados/2018/rpv/resultados/rpv_cancelados.txt", 'r')
     Lines = filePrecatorio.readlines()
     for line in Lines:
         LISTA_RPV_LIMPOS.append(line.strip())

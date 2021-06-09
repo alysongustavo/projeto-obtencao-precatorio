@@ -22,7 +22,7 @@ TRF5_URL="http://www4.trf5.jus.br/cp/cp.do"
 # Procedimento 3 - Obtem as linhas do arquivo e joga na variavel Lines
 
 
-filePrecatorio = open("../dados/2018/rpv/resultados/precatorios_cancelados_para_refinar.txt", 'r')
+filePrecatorio = open("../dados/2018/rpv/resultados/rpv_cancelados_para_refinar.txt", 'r')
 Lines = filePrecatorio.readlines()
 
 # Cria um array para popular os dados do arquivo
@@ -59,7 +59,7 @@ def escrever_file_falha_request(rpv):
 
 def ler_file_total_precatorio():
     LISTA_RPV_LIMPOS = []
-    filePrecatorio = open("../dados/2018/rpv/resultados/precatorios_cancelados_para_refinar.txt", 'r')
+    filePrecatorio = open("../dados/2018/rpv/resultados/rpv_cancelados_para_refinar.txt", 'r')
     Lines = filePrecatorio.readlines()
     for line in Lines:
         LISTA_RPV_LIMPOS.append(line.strip())

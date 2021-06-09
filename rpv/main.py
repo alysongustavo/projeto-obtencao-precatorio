@@ -1,26 +1,15 @@
-#importando tabelas em pdf usando o pytabula
+# consulta os dados do site http://rpvprecatorio.trf5.jus.br/
 
-# import tabula
 # import requests
 import aiohttp
 import asyncio
-
 
 from aiohttp import ClientSession
 from pip._vendor.urllib3.exceptions import HTTPError
 
 TRF5_URL="http://www4.trf5.jus.br/cp/cp.do"
 
-#Procedimento 1 - Converter arquivo PDF em CSV
-# tabula.convert_into("C:\\Users\\gdasi\\OneDrive\\Desktop\\necessidade-advogado-arthur\\precatorios\\2018_12106.pdf", "precatorios_2018.csv", output_format="csv", pages='2-215')
-
-# Procedimento 2 - Abre no PDF e faz as limpezas necessárias
-
-
-# Procedimento 3 - Obtem as linhas do arquivo e joga na variavel Lines
-
-
-filePrecatorio = open("../dados/2019/precatorios_rpv_2019.txt", 'r')
+filePrecatorio = open("../dados/2018/rpv/rpvs.txt", 'r')
 Lines = filePrecatorio.readlines()
 
 # Cria um array para popular os dados do arquivo
@@ -31,23 +20,23 @@ for line in Lines:
    LISTA_RPV.append(line.strip())
 
 def escrever_file_precatorio_ativo(rpv):
-    f = open('../dados/2019/rpv/resultados/precatorios_ativos.txt', 'a')
+    f = open('../dados/2018/rpv/resultados/rpv_ativos.txt', 'a')
     f.write(rpv+'\n')
     f.close()
 
 def escrever_file_precatorio_cancelado(rpv):
-    f = open('../dados/2019/rpv/resultados/precatorios_cancelados.txt', 'a')
+    f = open('../dados/2018/rpv/resultados/rpv_cancelados.txt', 'a')
     f.write(rpv + '\n')
     f.close()
 
 def escrever_file_falha_request(rpv):
-    f = open('../dados/2019/arquivo_falha_request.txt', 'a')
+    f = open('../dados/2018/rpv/arquivo_falha_request.txt', 'a')
     f.write(rpv + '\n')
     f.close()
 
 def ler_file_total_precatorio():
     LISTA_RPV_LIMPOS = []
-    filePrecatorio = open("../dados/2019/precatorios_rpv_2019.txt", 'r')
+    filePrecatorio = open("../dados/2018/rpv/rpvs.txt", 'r')
     Lines = filePrecatorio.readlines()
     for line in Lines:
         LISTA_RPV_LIMPOS.append(line.strip())
@@ -57,7 +46,7 @@ def ler_file_total_precatorio():
 
 def ler_file_precatorio_ativo():
    LISTA_RPV_ATIVO =[]
-   filePrecatorio = open("../dados/2019/rpv/resultados/precatorios_ativos.txt", 'r')
+   filePrecatorio = open("../dados/2018/rpv/resultados/rpv_ativos.txt", 'r')
    Lines = filePrecatorio.readlines()
    for line in Lines:
        LISTA_RPV_ATIVO.append(line.strip())
@@ -67,7 +56,7 @@ def ler_file_precatorio_ativo():
 
 def ler_file_precatorio_cancelado():
    LISTA_RPV_CANCELADO =[]
-   filePrecatorio = open("../dados/2019/rpv/resultados/precatorios_cancelados.txt", 'r')
+   filePrecatorio = open("../dados/2018/rpv/resultados/rpv_cancelados.txt", 'r')
    Lines = filePrecatorio.readlines()
    for line in Lines:
        LISTA_RPV_CANCELADO.append(line.strip())
@@ -77,7 +66,7 @@ def ler_file_precatorio_cancelado():
 
 def ler_arquivo_falha_request():
    LISTA_RPV_FALHA_REQUEST =[]
-   filePrecatorio = open("../dados/2019/arquivo_falha_request.txt", 'r')
+   filePrecatorio = open("../dados/2018/arquivo_falha_request.txt", 'r')
    Lines = filePrecatorio.readlines()
    for line in Lines:
        LISTA_RPV_FALHA_REQUEST.append(line.strip())
@@ -87,7 +76,7 @@ def ler_arquivo_falha_request():
 
 async def make_account():
     url = TRF5_URL
-    f = open('../dados/2019/arquivo_falha_request.txt', 'w')
+    f = open('../dados/2018/arquivo_falha_request.txt', 'w')
     f.close()
 
     async with aiohttp.ClientSession() as session:
@@ -109,11 +98,39 @@ async def do_post(session, url, rpv):
                 "ordenacao": "p"
                     }) as response: data = await response.text()
             if("Cancelamento de Precat&oacute;rio/RPV" in data):
+              # Obtenção do Valor Depositado
+              startValorDepositado = 'Dep&iuml;&iquest;&iquest;sito: R$ '
+              endValorDepositado = ','
+              valorDepositadoFiltrado = data.split(startValorDepositado)[1].split(endValorDepositado)[0]
+
+              # Obtenção do RPV
+              startRPV = '="14%">RPV'
+              endRPV = '-'
+              rpvFiltrado = data.split(startRPV)[1].split(endRPV)[0]
+
+              # Obtenção do Estado
+              startEstado = '="14%">RPV' + rpv + '-'
+              endEstado = '</td>'
+              estadoFiltrado = data.split(startEstado)[1].split(endEstado)[0]
+
+              startLocal = 'JU&Iacute;ZO DA '
+              endLocal = '</td>'
+              localFiltrado = data.split(startLocal)[1].split(endLocal)[0]
+
+              startDoc = 'Documento: '
+              endDoc = ','
+              documentoFiltrado = data.split(startDoc)[1].split(endDoc)[0]
+
+              startBeneficiario = 'Beneficiario: '
+              endBeneficiario = ','
+              beneficiarioFiltrado = data.split(startBeneficiario)[1].split(endBeneficiario)[0]
 
               if(rpv in ler_file_precatorio_cancelado()):
                   print(f"RPV: {rpv} já esta no arquivo")
               else:
                   escrever_file_precatorio_cancelado(rpv)
+                  escrever_file_precatorio_cancelado_refinado(valorDepositadoFiltrado, documentoFiltrado, beneficiarioFiltrado, estadoFiltrado, localFiltrado, rpvFiltrado)
+
 
             else:
               if(rpv in ler_file_precatorio_ativo()):
@@ -151,6 +168,19 @@ async def do_post(session, url, rpv):
             print("Todo os precatorios foram analisados com sucesso!")
         else:
             print(f"Ainda falta {(len(lista_total_precatorios) - (len(lista_precatorios_cancelados) + len(lista_precatorios_ativos)))} serem processados!")
+
+
+def escrever_file_precatorio_cancelado_refinado(valorDepositado, cpf, nome, estado, local, rpv):
+    f = open(
+        '../resultados/2018/rpv/rpv_informacoes.txt', 'a')
+    g = open(
+        '../resultados/2018/rpv/rpv_informacoes.csv', 'a')
+
+    g.write(str(nome) + '|' + str(cpf) + '|' + str(estado) + '|' + str(local) + '|' + str(valorDepositado) + '|' + str(rpv) + '\n')
+    g.close()
+
+    f.write(rpv + '\n')
+    f.close()
 
 def main():
    loop = asyncio.get_event_loop()
